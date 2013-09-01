@@ -8,7 +8,9 @@ DIR1 = includes
 
 DIR2 = data_structures
 
-INC = $(DIR1) $(DIR2)
+DIR3 = image_manip
+
+INC = $(DIR1) $(DIR2) $(DIR3)
 
 INC_PARAMS = $(foreach d, $(INC), -I$d)
 

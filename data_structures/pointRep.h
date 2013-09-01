@@ -12,19 +12,20 @@ namespace DynamicTextures
 		//Constructors
 		PointRep()
 		{
-			point_.x = point_.y = point_.z = 0.0;
+			point_.x = point_.y = point_.z = 0.0; 
+			point_.w = 1.0;
 			normal_.x = normal_.y = normal_.z = 0.0;
-			s_ = t_ = 0.0;
+			texture_.x = texture_.y = 0.0;
 			heightField_ = 0.0;
 			perturbed_ = false;
 			textureCoodsPopulated_ = false;
 		}
 
-		PointRep(Angel::vec4 _p,Angel::vec4 _n)
+		PointRep(Angel::vec4 _p,Angel::vec3 _n)
 		{
 			point_ = _p;
 			normal_ = _n;
-			s_ = t_ = 0.0;
+			texture_.x = texture_.y = 0.0;
 			heightField_ = 0.0;
 			perturbed_ = false;
 			textureCoodsPopulated_ = false;
@@ -34,10 +35,9 @@ namespace DynamicTextures
 	public:
 		//Point Datastructure
 		Angel::vec4 point_;
-		Angel::vec4 normal_;
+		Angel::vec3 normal_;
 		//Associated Texture Maps
-		GLfloat s_;
-		GLfloat t_;
+		Angel::vec2 texture_;
 		//Heighfield information 
 		double heightField_;
 		//Other information 

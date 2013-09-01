@@ -2,26 +2,24 @@
 
 attribute vec4 vPosition;
 attribute vec3 vNormal;
+attribute vec2 vTextureCoods;
 
-varying vec3 fN;
-varying vec3 fE;
-varying vec3 fL;
+varying vec3 fNormal;
+varying vec3 fPosition;
+varying vec2 fTextureCoods;
+//varying vec3 fL;
 
 uniform mat4 modelView;
 uniform mat4 projection;
-uniform vec4 lightPos;
+//uniform vec4 lightPos;
 
 void main()
 {
-	fN = vNormal;
-	fE = vPosition.xyz;
-	fL = lightPos.xyz;
-
-	if(lightPos.w != 0.0)
-	{
-		fL = lightPos.xyz - vPosition.xyz;
-	}
-
+	fNormal = vNormal;
+	fPosition = vPosition.xyz;
+	fTextureCoods = vTextureCoods;
+	
 	gl_Position = projection * modelView * vPosition;
+
 }
 
