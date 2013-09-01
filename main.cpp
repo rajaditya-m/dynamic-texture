@@ -1,7 +1,7 @@
 #include "Oracle.h"
 #include "pointRep.h"
-//#include "imageManip.h"
-#include <iostream>
+#include "imageManip.h"
+//#include <iostream>
 
 
 int numVertices;
@@ -32,81 +32,15 @@ GLfloat u_disp= 0.0,v_disp=0.0;
 GLuint ModelView,Projection;
 GLuint texture;
 
-//@TODO: Delete 
-GLubyte readImage[1028][768][4]; 
-GLubyte texImg[256][256][3];
-int tht;
-int twt;
+//Texture Stuff
+GLubyte* texImg;
+int texHeight;
+int texWidth;
 
 int idx = 0;
 
-void triangle(const point4& a,const point4& b,const point4& c)
-{
-	vec3 normal = normalize(cross(b-a,c-b));
-	normals[idx] = normal; points[idx] = a; idx++;
-	normals[idx] = normal; points[idx] = b; idx++;
-	normals[idx] = normal; points[idx] = c; idx++;
-}
-
-point4 unit (const point4& p)
-{
-	float len = p.x*p.x + p.y*p.y + p.z*p.z;
-
-	point4 t;
-	if(len>DivideByZeroTolerance)
-	{
-		t = p/sqrt(len);
-		t.w = 1.0;
-	}
-	return t;
-}
-
-//@TODO ::Delete 
-void read_Image() 
-{
-  FILE* in = fopen("soupLabel-P3.ppm", "r"); 
-
-  int  ccv; 
-  char header[100]; 
-  fscanf(in, "%s %d %d %d", header, &twt, &tht, &ccv); 
-
-  printf("%s %d %d %d\n", header, twt, tht, ccv);
-  int r, g, b; 
-
-  for (int i=tht-1; i>=0; i--)
-     for (int j=0; j<twt; j++)
-{
-      fscanf(in, "%d %d %d", &r, &g, &b); 
-      readImage[i][j][0] = (GLubyte)r; 
-      readImage[i][j][1] = (GLubyte)g; 
-      readImage[i][j][2] = (GLubyte )b; 
-      //readImage[i][j][3] = 255; 
-    }
-
-  for (int i=0; i<256; i++)
-    for ( int j=0; j<256; j++) {
-      if (i<tht && j <twt) {
-	texImg[i][j][0] = readImage[i][j][0]; 
-	texImg[i][j][1] = readImage[i][j][1];
-	texImg[i][j][2] = readImage[i][j][2];
-	//texImage[i][j][3] = 255; 
-      }
-      else {
-      	texImg[i][j][0] = 0; 
-	texImg[i][j][1] = 0; 
-	texImg[i][j][2] = 0; 
-	//texImage[i][j][3] = 255; 
-      }
-    }
-  
-  fclose(in); 
-}
-
-
 void InitCylinder(double height,double lRad,double tRad,int nslices, int nstacks) 
 {
-
-
   	int numUniqueVertices = nslices * nstacks; 
 
   	DynamicTextures::PointRep* pointPool = new DynamicTextures::PointRep[numUniqueVertices];
@@ -136,11 +70,8 @@ void InitCylinder(double height,double lRad,double tRad,int nslices, int nstacks
 		  	tempNormal.y = aRad*sin(angle);
 		  	tempNormal.z = 0.0;
 
-		  	//tempTex.x = (atan2(lRad*tempPoint.y,tRad*tempPoint.x)+M_PI*0.5)/M_PI;
 		  	tempTex.x = angle/(2*M_PI);
 		  	tempTex.y = tempPoint.z/height;
-
-		  	//std::cout << tempTex << "\n";
 
 		  	pointPool[idx].point_ = tempPoint;
 		  	pointPool[idx].normal_ = tempNormal;
@@ -172,14 +103,13 @@ void InitCylinder(double height,double lRad,double tRad,int nslices, int nstacks
 
 void init()
 {
-	read_Image();
 
 	InitCylinder(4,2,2,20,20);
 
 	//Texture Binding Stuff
 	glGenTextures(1,&texture);
 	glBindTexture(GL_TEXTURE_2D,texture);
-	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,256,256,0,GL_RGB,GL_UNSIGNED_BYTE,texImg);
+	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,texWidth,texHeight,0,GL_RGB,GL_UNSIGNED_BYTE,texImg);
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -227,28 +157,6 @@ void init()
 	glVertexAttribPointer(vTexCoods,2,GL_FLOAT,GL_FALSE,0,BUFFER_OFFSET(offset));
 
 	glUniform1i(glGetUniformLocation(program,"texture"),0);
-
-	point4 lightPosition(20.0,20.0,20.0,0.0);
-	color4 lightAmbient(0.2,0.2,0.2,1.0);
-	color4 lightDiffuse(1.0,1.0,1.0,1.0);
-	color4 lightSpecular(1.0,1.0,1.0,1.0);
-
-	color4 materialAmbient(1.0,0.0,1.0,1.0);
-	color4 materialDiffuse(1.0,0.8,0.0,1.0);
-	color4 materialSpecular(1.0,0.0,1.0,1.0);
-	float materialShininess = 0.5;
-
-	color4 ambientPdk = lightAmbient*materialAmbient;
-	color4 diffusePdk = lightDiffuse*materialDiffuse;
-	color4 specularPdk = lightSpecular*materialSpecular;
-
-	glUniform4fv(glGetUniformLocation(program,"ambientPdk"),1,ambientPdk);
-	glUniform4fv(glGetUniformLocation(program,"diffusePdk"),1,diffusePdk);
-	glUniform4fv(glGetUniformLocation(program,"specularPdk"),1,specularPdk);
-
-	glUniform4fv(glGetUniformLocation(program,"lightPos"),1,lightPosition);
-
-	glUniform1f(glGetUniformLocation(program,"shininess"),materialShininess);
 
 	ModelView = glGetUniformLocation(program,"modelView");
 	Projection = glGetUniformLocation(program,"projection");
@@ -384,6 +292,8 @@ int main(int argc, char** argv)
 
 	glewExperimental = GL_TRUE;
 	glewInit();
+
+	texImg = DynamicTextures::readASCIIPPMImage("soupLabel-P3.ppm",&texHeight,&texWidth);
 
 	init();
 
